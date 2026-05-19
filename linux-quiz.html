@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e0a">
+<title>Linux Quiz — Larissa Cruz</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --green: #00ff88;
+  --green-dim: #00cc6a;
+  --green-dark: #003322;
+  --amber: #ffb800;
+  --red: #ff4455;
+  --blue: #66aaff;
+  --bg: #0a0e0a;
+  --bg2: #0f160f;
+  --bg3: #141e14;
+  --border: rgba(0,255,136,0.2);
+  --border-hi: rgba(0,255,136,0.5);
+  --text: #c8e8c8;
+  --text-dim: #5a8a5a;
+  --mono: 'JetBrains Mono', 'Courier New', monospace;
+  --display: 'Orbitron', monospace;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* scanlines */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  pointer-events: none;
+  z-index: 900;
+}
+
+/* ── WRAPPER ── */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 720px;
+  margin: 0 auto;
+  padding:
+    calc(var(--sat) + 12px)
+    calc(var(--sar) + 16px)
+    calc(var(--sab) + 16px)
+    calc(var(--sal) + 16px);
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo-wrap {}
+
+.logo {
+  font-family: var(--display);
+  font-size: clamp(9px, 2.8vw, 13px);
+  color: var(--green);
+  letter-spacing: 2px;
+  text-shadow: 0 0 14px var(--green);
+}
+
+.logo-sub {
+  font-size: clamp(9px, 2.2vw, 10px);
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-top: 3px;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.score-chips {
+  display: flex;
+  gap: 12px;
+  font-size: clamp(12px, 3.5vw, 14px);
+  font-weight: 700;
+}
+
+.chip-correct { color: var(--green); }
+.chip-wrong   { color: var(--red); }
+
+.credits {
+  font-size: clamp(9px, 2.5vw, 10px);
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.credits a {
+  color: var(--green-dim);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0,255,136,0.25);
+  padding-bottom: 1px;
+}
+
+/* ── PROGRESS ── */
+.progress-section {
+  padding: 12px 0 0;
+  flex-shrink: 0;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: clamp(10px, 2.8vw, 11px);
+  color: var(--text-dim);
+  margin-bottom: 7px;
+  letter-spacing: 1px;
+}
+
+.q-num { color: var(--green); font-weight: 700; }
+
+.progress-track {
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-dim), var(--green));
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 6px var(--green);
+}
+
+/* ── MAIN FLEX ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+/* ── QUESTION CARD ── */
+.slide-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: clamp(12px, 4vw, 20px);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.slide-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green-dim), transparent);
+  border-radius: 8px 8px 0 0;
+}
+
+.category-tag {
+  display: inline-block;
+  font-size: clamp(9px, 2.2vw, 10px);
+  letter-spacing: 2px;
+  color: var(--green-dim);
+  background: var(--green-dark);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 3px;
+  margin-bottom: 9px;
+  text-transform: uppercase;
+}
+
+.question-text {
+  font-size: clamp(13px, 3.8vw, 16px);
+  color: #e8ffe8;
+  line-height: 1.55;
+  margin-bottom: 7px;
+}
+
+.question-hint {
+  font-size: clamp(11px, 2.8vw, 12px);
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* ── TERMINAL ── */
+.terminal {
+  background: #050905;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 150px;
+  max-height: 40vh;
+  overflow: hidden;
+}
+
+.terminal-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-red    { background: #ff5f57; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green  { background: #28ca41; }
+
+.terminal-title {
+  font-size: clamp(9px, 2.5vw, 11px);
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-left: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.terminal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.terminal-body::-webkit-scrollbar { width: 3px; }
+.terminal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.t-line {
+  font-size: clamp(11px, 2.8vw, 13px);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.t-prompt  { color: var(--green); }
+.t-cmd     { color: #fff; }
+.t-out     { color: #8ab88a; }
+.t-err     { color: var(--red); }
+.t-success { color: var(--amber); }
+.t-info    { color: var(--blue); }
+
+/* ── INPUT ROW ── */
+.input-row {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  background: #050905;
+  padding: 8px 12px;
+  flex-shrink: 0;
+  gap: 6px;
+  /* extra bottom padding for home indicator */
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+}
+
+.prompt-label {
+  color: var(--green);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: clamp(11px, 2.8vw, 13px);
+}
+
+/* show short prompt on narrow screens */
+.prompt-full  { display: inline; }
+.prompt-short { display: none; }
+
+@media (max-width: 400px) {
+  .prompt-full  { display: none; }
+  .prompt-short { display: inline; }
+}
+
+.cmd-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--mono);
+  /* 16px prevents iOS auto-zoom on focus */
+  font-size: 16px;
+  color: #fff;
+  caret-color: var(--green);
+  padding: 4px 6px;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+.run-btn {
+  background: var(--green-dark);
+  border: 1px solid var(--border-hi);
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: clamp(11px, 3vw, 12px);
+  letter-spacing: 1px;
+  padding: 0 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+  /* 44px min touch target (Apple HIG / Material) */
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  -webkit-appearance: none;
+  transition: background 0.15s;
+}
+
+.run-btn:active { background: rgba(0,255,136,0.15); }
+
+/* ── FEEDBACK ── */
+.feedback {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: clamp(12px, 3vw, 13px);
+  text-align: center;
+  line-height: 1.4;
+  display: none;
+  animation: fadeUp 0.25s ease;
+  flex-shrink: 0;
+}
+
+.feedback.show    { display: block; }
+.feedback.correct { background: rgba(0,255,136,0.07); border: 1px solid var(--green-dim); color: var(--green); }
+.feedback.wrong   { background: rgba(255,68,85,0.07);  border: 1px solid var(--red);       color: var(--red);   }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(5px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── NAV BUTTONS ── */
+.nav-row {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  padding-bottom: 4px;
+}
+
+.nav-btn {
+  font-family: var(--mono);
+  font-size: clamp(12px, 3.2vw, 13px);
+  letter-spacing: 1px;
+  padding: 0 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid;
+  /* 48px touch target */
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-appearance: none;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.btn-skip {
+  background: transparent;
+  border-color: var(--text-dim);
+  color: var(--text-dim);
+  flex: 1;
+}
+
+.btn-skip:active { background: rgba(255,255,255,0.05); }
+
+.btn-next {
+  background: var(--green-dark);
+  border-color: var(--green-dim);
+  color: var(--green);
+  flex: 2;
+}
+
+.btn-next:active   { background: rgba(0,255,136,0.15); }
+.btn-next:disabled { opacity: 0.3; pointer-events: none; }
+
+/* keyboard adaptation: collapse terminal height */
+@media (max-height: 580px) {
+  .terminal { max-height: 28vh; min-height: 110px; }
+  .slide-card .question-hint { display: none; }
+}
+
+@media (max-height: 480px) {
+  .slide-card { display: none; }
+  .terminal   { max-height: 35vh; }
+}
+
+/* ── END SCREEN ── */
+.end-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding:
+    calc(var(--sat) + 32px)
+    calc(var(--sar) + 24px)
+    calc(var(--sab) + 32px)
+    calc(var(--sal) + 24px);
+  text-align: center;
+  gap: 18px;
+  animation: fadeUp 0.4s ease;
+}
+
+.end-screen.show { display: flex; }
+
+.trophy {
+  font-size: clamp(52px, 14vw, 72px);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50%      { transform: scale(1.07); }
+}
+
+.end-title {
+  font-family: var(--display);
+  font-size: clamp(22px, 7vw, 34px);
+  color: var(--green);
+  text-shadow: 0 0 22px var(--green);
+  letter-spacing: 3px;
+}
+
+.end-subtitle {
+  font-size: clamp(11px, 3vw, 14px);
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+.score-display {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: clamp(16px,5vw,28px) clamp(24px,10vw,52px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.score-big {
+  font-family: var(--display);
+  font-size: clamp(44px, 14vw, 62px);
+  color: var(--amber);
+  text-shadow: 0 0 14px rgba(255,184,0,0.4);
+  line-height: 1;
+}
+
+.score-label {
+  font-size: clamp(9px, 2.5vw, 11px);
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+.score-grade {
+  margin-top: 8px;
+  font-size: clamp(12px, 3vw, 14px);
+  color: var(--green);
+  letter-spacing: 1px;
+  line-height: 1.4;
+}
+
+.end-stats {
+  display: flex;
+  gap: clamp(14px, 5vw, 32px);
+  font-size: clamp(11px, 3vw, 13px);
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.end-stats span { color: var(--text); }
+
+.restart-btn {
+  font-family: var(--mono);
+  font-size: clamp(13px, 3.5vw, 15px);
+  letter-spacing: 2px;
+  padding: 0 36px;
+  background: var(--green-dark);
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  border-radius: 7px;
+  cursor: pointer;
+  min-height: 52px;
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-appearance: none;
+  transition: background 0.15s;
+}
+
+.restart-btn:active { background: rgba(0,255,136,0.15); }
+
+.end-credits {
+  font-size: clamp(9px, 2.5vw, 11px);
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+.end-credits a {
+  color: var(--green-dim);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0,204,106,0.3);
+}
+
+/* matrix canvas */
+#matrix-canvas {
+  position: fixed; top:0; left:0;
+  width:100%; height:100%;
+  opacity:0; pointer-events:none; z-index:0;
+  transition: opacity 1s;
+}
+
+#matrix-canvas.show { opacity: 0.06; }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+
+<div class="app" id="app">
+
+  <!-- ══════ QUIZ SCREEN ══════ -->
+  <div id="quiz-screen" style="display:flex;flex-direction:column;flex:1;">
+
+    <div class="header">
+      <div class="logo-wrap">
+        <div class="logo">LINUX_QUIZ.sh</div>
+        <div class="logo-sub">50 comandos essenciais</div>
+      </div>
+      <div class="header-right">
+        <div class="score-chips">
+          <span class="chip-correct">✓ <span id="correct-count">0</span></span>
+          <span class="chip-wrong">✗ <span id="wrong-count">0</span></span>
+        </div>
+        <div class="credits">
+          por <a href="https://www.linkedin.com/in/larissa-cruz-70280322a" target="_blank" rel="noopener">Larissa Cruz ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-meta">
+        <span>QUESTÃO <span id="q-current" class="q-num">1</span> / 50</span>
+        <span id="pct-label">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <div class="slide-card" id="slide-card">
+        <div class="category-tag" id="q-category">— arquivo —</div>
+        <div class="question-text" id="q-text">Qual comando lista os arquivos do diretório atual?</div>
+        <div class="question-hint" id="q-hint">💡 Exibe conteúdo de uma pasta</div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="terminal-title">larissa@linux:~</div>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+          <div class="t-line t-info"># Bem-vindo! Digite o comando abaixo.</div>
+          <div class="t-line" style="color:var(--text-dim)">──────────────────────</div>
+        </div>
+        <div class="input-row">
+          <span class="prompt-label">
+            <span class="prompt-full">larissa@linux:~$&nbsp;</span>
+            <span class="prompt-short">$&nbsp;</span>
+          </span>
+          <input
+            class="cmd-input" id="cmd-input"
+            type="text"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="comando..."
+            enterkeyhint="go"
+          />
+          <button class="run-btn" id="run-btn">▶ RUN</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="nav-row">
+        <button class="nav-btn btn-skip" id="skip-btn">PULAR</button>
+        <button class="nav-btn btn-next" id="next-btn" disabled>PRÓXIMA →</button>
+      </div>
+
+    </div><!-- .main -->
+  </div><!-- #quiz-screen -->
+
+  <!-- ══════ END SCREEN ══════ -->
+  <div class="end-screen" id="end-screen">
+    <div class="trophy">🏆</div>
+    <div class="end-title">PARABÉNS!</div>
+    <div class="end-subtitle">você completou o linux quiz!</div>
+
+    <div class="score-display">
+      <div class="score-big" id="final-score">0%</div>
+      <div class="score-label">PONTUAÇÃO FINAL</div>
+      <div class="score-grade" id="final-grade">—</div>
+    </div>
+
+    <div class="end-stats">
+      <div>Corretas: <span id="end-correct">0</span></div>
+      <div>Erradas: <span id="end-wrong">0</span></div>
+      <div>Aproveitamento: <span id="end-pct">0%</span></div>
+    </div>
+
+    <button class="restart-btn" id="restart-btn">↺ JOGAR NOVAMENTE</button>
+
+    <div class="end-credits">
+      criado por
+      <a href="https://www.linkedin.com/in/larissa-cruz-70280322a" target="_blank" rel="noopener">Larissa Cruz ↗</a>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+const Q = [
+  {cat:"arquivos",    q:"Qual comando lista os arquivos do diretório atual?",                       hint:"💡 Exibe conteúdo de uma pasta",                          ans:["ls"],                                                         out:`Documents  Downloads  Music  Pictures\nDesktop    snap       .bashrc   .ssh`,               cls:"t-out"},
+  {cat:"navegação",   q:"Qual comando mostra o caminho completo do diretório atual?",               hint:"💡 'Print Working Directory'",                             ans:["pwd"],                                                        out:`/home/larissa`,                                                                              cls:"t-out"},
+  {cat:"navegação",   q:"Como você vai para o diretório /home/larissa?",                            hint:"💡 'Change Directory'",                                    ans:["cd /home/larissa"],                                           out:``,                                                                                          cls:"t-out"},
+  {cat:"arquivos",    q:"Qual comando cria um novo diretório chamado 'projetos'?",                  hint:"💡 'Make Directory'",                                      ans:["mkdir projetos"],                                             out:``,                                                                                          cls:"t-out"},
+  {cat:"arquivos",    q:"Como você cria um arquivo vazio chamado 'notas.txt'?",                     hint:"💡 Atualiza timestamp ou cria arquivo",                     ans:["touch notas.txt"],                                            out:``,                                                                                          cls:"t-out"},
+  {cat:"arquivos",    q:"Qual comando remove um arquivo chamado 'lixo.txt'?",                       hint:"💡 Cuidado — não vai para lixeira!",                        ans:["rm lixo.txt"],                                                out:``,                                                                                          cls:"t-out"},
+  {cat:"arquivos",    q:"Como você copia 'relatorio.txt' para 'backup.txt'?",                       hint:"💡 'Copy'",                                                ans:["cp relatorio.txt backup.txt"],                                out:``,                                                                                          cls:"t-out"},
+  {cat:"arquivos",    q:"Qual comando move 'foto.jpg' para a pasta 'imagens/'?",                    hint:"💡 'Move' — também serve para renomear",                   ans:["mv foto.jpg imagens/"],                                       out:``,                                                                                          cls:"t-out"},
+  {cat:"conteúdo",   q:"Como você exibe o conteúdo de 'readme.txt' no terminal?",                  hint:"💡 'Concatenate and print'",                               ans:["cat readme.txt"],                                             out:`# Linux Quiz\nVersão: 2.5.1\nAutor: Larissa Cruz`,                                          cls:"t-out"},
+  {cat:"conteúdo",   q:"Qual comando exibe as 5 primeiras linhas de 'log.txt'?",                   hint:"💡 'Cabeça' do arquivo",                                   ans:["head -n 5 log.txt"],                                          out:`2024-01-01 INFO  Serviço iniciado\n2024-01-01 INFO  Banco conectado\n2024-01-01 INFO  Cache carregado\n2024-01-01 INFO  API online\n2024-01-01 WARN  Memória alta`, cls:"t-out"},
+  {cat:"conteúdo",   q:"Como você vê as últimas 10 linhas de 'erros.log'?",                        hint:"💡 'Cauda' do arquivo",                                    ans:["tail -n 10 erros.log"],                                       out:`[ERROR] Timeout: 192.168.1.55\n[ERROR] Falha auth: admin\n[WARN]  Memória 92%\n[INFO]  Backup ok: 3.2 GB`,cls:"t-out"},
+  {cat:"busca",       q:"Qual comando busca a palavra 'ERRO' dentro de 'sistema.log'?",             hint:"💡 'Global Regular Expression Print'",                     ans:["grep ERRO sistema.log","grep 'ERRO' sistema.log"],            out:`14:22:01 ERRO  Falha na autenticação\n14:23:45 ERRO  Conexão recusada`,                     cls:"t-err"},
+  {cat:"busca",       q:"Como você encontra todos os arquivos .txt em /home?",                      hint:"💡 'Find' com filtro por nome",                            ans:["find /home -name '*.txt'","find /home -name \"*.txt\""],       out:`/home/larissa/documentos/notas.txt\n/home/larissa/projetos/readme.txt`,                      cls:"t-out"},
+  {cat:"permissões",  q:"Como você dá permissão 755 ao arquivo 'deploy.sh'?",                       hint:"💡 'Change Mode'",                                         ans:["chmod 755 deploy.sh"],                                        out:``,                                                                                          cls:"t-out"},
+  {cat:"permissões",  q:"Qual comando muda o dono de 'config.yml' para 'www-data'?",                hint:"💡 'Change Owner'",                                        ans:["chown www-data config.yml"],                                  out:``,                                                                                          cls:"t-out"},
+  {cat:"processos",   q:"Qual comando lista todos os processos em execução?",                        hint:"💡 'Process Status' com todas as flags",                   ans:["ps aux"],                                                     out:`USER     PID %CPU COMMAND\nroot       1  0.0 /sbin/init\nlarissa 1234  0.5 python3 app.py\nnginx   3456  0.1 nginx: worker`,cls:"t-out"},
+  {cat:"processos",   q:"Como você encerra o processo com PID 4242?",                               hint:"💡 Envia sinal SIGTERM",                                   ans:["kill 4242"],                                                  out:``,                                                                                          cls:"t-out"},
+  {cat:"processos",   q:"Qual comando mata forçosamente o processo com PID 9999?",                  hint:"💡 Sinal SIGKILL (-9) = sem misericórdia",                 ans:["kill -9 9999"],                                               out:``,                                                                                          cls:"t-out"},
+  {cat:"sistema",     q:"Qual comando mostra o uso do disco de forma legível?",                     hint:"💡 'Disk Free' com flag human-readable",                   ans:["df -h"],                                                      out:`Filesystem  Size  Used Avail Use%\n/dev/sda1    50G   31G   17G  65%\n/dev/sdb1   500G  180G  295G  38%`,cls:"t-out"},
+  {cat:"sistema",     q:"Como você vê o tamanho da pasta /var de forma legível?",                   hint:"💡 'Disk Usage' com summary + human",                      ans:["du -sh /var"],                                                out:`2.4G\t/var`,                                                                                 cls:"t-out"},
+  {cat:"sistema",     q:"Qual comando mostra o uso de memória RAM?",                                hint:"💡 'Free memory' com flag legível",                        ans:["free -h"],                                                    out:`       total   used   free\nMem:    15Gi   6.3Gi  2.1Gi\nSwap:  2.0Gi      0B  2.0Gi`,         cls:"t-out"},
+  {cat:"sistema",     q:"Qual comando exibe informações do sistema e kernel?",                       hint:"💡 'Unix Name' com todas as infos",                        ans:["uname -a"],                                                   out:`Linux larissa-pc 5.15.0-91-generic x86_64 GNU/Linux`,                                        cls:"t-out"},
+  {cat:"usuários",    q:"Qual comando exibe o nome do usuário atual?",                               hint:"💡 'Who am I?'",                                           ans:["whoami"],                                                     out:`larissa`,                                                                                   cls:"t-out"},
+  {cat:"usuários",    q:"Qual comando mostra UID, GID e grupos do usuário atual?",                   hint:"💡 'Identity' completa",                                   ans:["id"],                                                         out:`uid=1000(larissa) gid=1000(larissa) groups=1000,27(sudo),1001(docker)`,                      cls:"t-out"},
+  {cat:"usuários",    q:"Como você cria um novo usuário chamado 'carlos'?",                          hint:"💡 'User Add'",                                            ans:["useradd carlos","sudo useradd carlos"],                        out:``,                                                                                          cls:"t-out"},
+  {cat:"usuários",    q:"Qual comando altera a senha do usuário 'carlos'?",                          hint:"💡 'Password'",                                            ans:["passwd carlos","sudo passwd carlos"],                          out:`New password:\npasswd: password updated successfully`,                                       cls:"t-success"},
+  {cat:"usuários",    q:"Como você muda para o usuário root no terminal?",                           hint:"💡 'Substitute User' com flag login",                      ans:["su -","su - root","sudo su"],                                  out:`root@larissa-pc:/home/larissa#`,                                                             cls:"t-prompt"},
+  {cat:"pacotes",     q:"Qual comando atualiza a lista de pacotes no Ubuntu/Debian?",               hint:"💡 Sempre rode antes de instalar",                         ans:["sudo apt update","apt update"],                               out:`Fetched 3.2 MB in 4s\n12 packages can be upgraded.`,                                         cls:"t-info"},
+  {cat:"pacotes",     q:"Como você instala o pacote 'htop' no Ubuntu?",                             hint:"💡 'Advanced Package Tool install'",                       ans:["sudo apt install htop","apt install htop"],                    out:`The following NEW packages will be installed: htop\nSetting up htop (3.2.2-1) ...`,          cls:"t-success"},
+  {cat:"pacotes",     q:"Qual comando remove o pacote 'vim'?",                                      hint:"💡 Remove sem remover dependências",                       ans:["sudo apt remove vim","apt remove vim"],                        out:`Removing vim (2:9.0.0749) ...`,                                                              cls:"t-out"},
+  {cat:"serviços",    q:"Qual comando inicia o serviço nginx?",                                     hint:"💡 Sistema moderno de gerenciamento de serviços",          ans:["sudo systemctl start nginx","systemctl start nginx"],          out:``,                                                                                          cls:"t-out"},
+  {cat:"serviços",    q:"Como você verifica o status do serviço 'ssh'?",                            hint:"💡 Mostra se está ativo, inativo ou falhando",             ans:["sudo systemctl status ssh","systemctl status ssh"],            out:`● ssh.service - OpenBSD Secure Shell server\n   Active: active (running) since Mon 2024-01-15\n  Main PID: 1037 (sshd)`,cls:"t-success"},
+  {cat:"serviços",    q:"Qual comando habilita o nginx para iniciar com o sistema?",                hint:"💡 Persiste após reboot",                                  ans:["sudo systemctl enable nginx","systemctl enable nginx"],        out:`Created symlink /etc/systemd/system/multi-user.target.wants/nginx.service`,                  cls:"t-success"},
+  {cat:"rede",        q:"Qual comando verifica conectividade com google.com?",                      hint:"💡 Envia pacotes ICMP",                                    ans:["ping google.com"],                                            out:`PING google.com (142.250.219.142)\n64 bytes: icmp_seq=1 time=12.3 ms\n64 bytes: icmp_seq=2 time=11.8 ms`,cls:"t-out"},
+  {cat:"rede",        q:"Qual comando exibe os endereços IP das interfaces de rede?",               hint:"💡 Versão moderna do ifconfig",                            ans:["ip addr","ip a","ip address"],                                 out:`1: lo: <LOOPBACK,UP>\n    inet 127.0.0.1/8\n2: eth0: <BROADCAST,UP>\n    inet 192.168.1.105/24`,cls:"t-info"},
+  {cat:"rede",        q:"Como você vê todas as conexões de rede ativas com portas?",                hint:"💡 TCP/UDP Listening + Ports + Numeric",                   ans:["netstat -tulpn","ss -tulpn"],                                  out:`tcp  0.0.0.0:22  LISTEN  1037/sshd\ntcp  0.0.0.0:80  LISTEN  3456/nginx`,                  cls:"t-out"},
+  {cat:"rede",        q:"Como você acessa via SSH o servidor 192.168.1.10 com usuário 'admin'?",   hint:"💡 'Secure Shell'",                                        ans:["ssh admin@192.168.1.10"],                                     out:`admin@192.168.1.10's password:\nWelcome to Ubuntu 22.04.3 LTS\nadmin@servidor:~$`,           cls:"t-success"},
+  {cat:"download",    q:"Qual comando baixa um arquivo de https://exemplo.com/arquivo.zip?",       hint:"💡 'Wget' — web get",                                      ans:["wget https://exemplo.com/arquivo.zip"],                        out:`arquivo.zip 100%[==>] 50.00M  8.42MB/s  in 5.9s`,                                           cls:"t-success"},
+  {cat:"download",    q:"Qual comando exibe os headers HTTP de https://google.com?",               hint:"💡 curl com flag de apenas cabeçalhos",                    ans:["curl -I https://google.com"],                                 out:`HTTP/2 301\nlocation: https://www.google.com/\nserver: gws`,                                  cls:"t-info"},
+  {cat:"compressão",  q:"Qual comando cria 'backup.tar.gz' da pasta /home/larissa?",               hint:"💡 tar + c(reate) z(gzip) f(ile)",                         ans:["tar -czf backup.tar.gz /home/larissa"],                        out:`/home/larissa/\n/home/larissa/documentos/\n/home/larissa/.bashrc`,                            cls:"t-out"},
+  {cat:"compressão",  q:"Como você extrai o arquivo 'backup.tar.gz'?",                             hint:"💡 tar + e(x)tract z(gzip) f(ile)",                        ans:["tar -xzf backup.tar.gz"],                                     out:`home/larissa/\nhome/larissa/documentos/\nhome/larissa/.bashrc`,                               cls:"t-out"},
+  {cat:"compressão",  q:"Qual comando extrai o arquivo 'pacote.zip'?",                             hint:"💡 'Unzip' — descomprime .zip",                            ans:["unzip pacote.zip"],                                           out:`Archive:  pacote.zip\n  inflating: pacote/README.md\n  inflating: pacote/install.sh`,         cls:"t-out"},
+  {cat:"shell",       q:"Qual comando imprime 'Olá, Larissa!' no terminal?",                       hint:"💡 'Echo' — repete o que você diz",                        ans:["echo 'Olá, Larissa!'","echo \"Olá, Larissa!\""],               out:`Olá, Larissa!`,                                                                              cls:"t-success"},
+  {cat:"shell",       q:"Qual comando exibe o histórico de comandos digitados?",                   hint:"💡 Mostra tudo que você já executou",                      ans:["history"],                                                    out:`  498  git add .\n  499  git commit -m "feat: login"\n  500  history`,                        cls:"t-out"},
+  {cat:"shell",       q:"Qual comando exibe o manual do comando 'grep'?",                          hint:"💡 'Manual pages' — ajuda completa",                       ans:["man grep"],                                                   out:`GREP(1)  User Commands\n\nNAME\n  grep - print lines matching patterns`,                       cls:"t-info"},
+  {cat:"shell",       q:"Como você cria o alias 'll' para o comando 'ls -la'?",                    hint:"💡 'Alias' — apelido para comandos longos",                ans:["alias ll='ls -la'","alias ll=\"ls -la\""],                     out:``,                                                                                          cls:"t-out"},
+  {cat:"variáveis",   q:"Qual comando lista todas as variáveis de ambiente?",                       hint:"💡 'Environment' — mostra PATH, HOME, etc.",               ans:["env","printenv"],                                             out:`HOME=/home/larissa\nUSER=larissa\nSHELL=/bin/bash\nPATH=/usr/local/bin:/usr/bin:/bin`,       cls:"t-out"},
+  {cat:"variáveis",   q:"Como você adiciona /opt/meu-app/bin ao PATH da sessão atual?",            hint:"💡 'Export' torna disponível para subprocessos",           ans:["export PATH=$PATH:/opt/meu-app/bin"],                          out:``,                                                                                          cls:"t-out"},
+  {cat:"agendamento", q:"Qual comando abre o editor de tarefas agendadas do cron?",                hint:"💡 'Cron Table' — edita jobs periódicos",                  ans:["crontab -e"],                                                 out:`# m h dom mon dow  command\n  0 2 * * *    /home/larissa/backup.sh\n*/5 * * * *   /home/larissa/monitor.sh`,cls:"t-info"},
+  {cat:"sistema",     q:"Qual comando exibe informações detalhadas sobre a CPU?",                  hint:"💡 'CPU Info' do arquivo de sistema",                      ans:["cat /proc/cpuinfo"],                                          out:`processor  : 0\nmodel name : Intel Core i7-10750H @ 2.60GHz\ncache size : 12288 KB`,        cls:"t-out"},
+  {cat:"sistema",     q:"Como você reinicia o sistema imediatamente?",                             hint:"💡 'Reboot' — reinicia agora!",                            ans:["sudo reboot","reboot"],                                        out:`Broadcast: The system will reboot now!\nConnection closed.`,                                  cls:"t-err"},
+  {cat:"sistema",     q:"Qual comando encerra o sistema com segurança agora?",                     hint:"💡 'Shutdown' com hora 'now'",                             ans:["sudo shutdown now","shutdown now"],                             out:`The system is going down for power-off NOW!`,                                                cls:"t-err"},
+  {cat:"git",         q:"Qual comando inicializa um repositório Git no diretório atual?",          hint:"💡 Cria a pasta .git oculta",                              ans:["git init"],                                                   out:`Initialized empty Git repository in /home/larissa/meu-app/.git/`,                            cls:"t-success"},
+  {cat:"git",         q:"Como você clona o repositório https://github.com/larissa/api?",          hint:"💡 Baixa o repositório remoto completo",                   ans:["git clone https://github.com/larissa/api"],                    out:`Cloning into 'api'...\nReceiving objects: 100% (1247/1247), 4.82 MiB`,                        cls:"t-success"}
+];
+
+let idx=0, okCount=0, errCount=0, answered=false;
+
+const $ = id => document.getElementById(id);
+
+function loadQ(i) {
+  const q = Q[i];
+  answered = false;
+  $('cmd-input').value = '';
+  $('cmd-input').disabled = false;
+  $('next-btn').disabled = true;
+  $('feedback').className = 'feedback';
+
+  $('q-category').textContent = `— ${q.cat} —`;
+  $('q-text').textContent     = q.q;
+  $('q-hint').textContent     = q.hint;
+
+  const pct = Math.round((i / Q.length) * 100);
+  $('progress-fill').style.width = pct + '%';
+  $('pct-label').textContent     = pct + '%';
+  $('q-current').textContent     = i + 1;
+
+  $('terminal-body').innerHTML = `
+    <div class="t-line t-info"># Q${i+1}/50 — ${q.cat}</div>
+    <div class="t-line" style="color:var(--text-dim)">──────────────────────</div>`;
+}
+
+function norm(s){ return s.trim().replace(/\s+/g,' ').toLowerCase(); }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function addLine(cls, txt){
+  const d=document.createElement('div');
+  d.className='t-line '+cls;
+  d.textContent=txt;
+  $('terminal-body').appendChild(d);
+}
+function addHTML(cls, html){
+  const d=document.createElement('div');
+  d.className='t-line '+cls;
+  d.innerHTML=html;
+  $('terminal-body').appendChild(d);
+}
+
+function check(){
+  if(answered) return;
+  const q = Q[idx];
+  const typed = $('cmd-input').value.trim();
+  if(!typed){ $('cmd-input').focus(); return; }
+
+  answered = true;
+  $('cmd-input').disabled = true;
+  addHTML('', `<span class="t-prompt">$ </span><span class="t-cmd">${esc(typed)}</span>`);
+
+  const ok = q.ans.some(a => norm(a)===norm(typed));
+
+  setTimeout(()=>{
+    const tb = $('terminal-body');
+    if(ok){
+      if(q.out) q.out.split('\n').forEach(l=>addLine(q.cls, l));
+      addLine('t-success','✓ Comando executado com sucesso!');
+      $('feedback').className='feedback correct show';
+      $('feedback').textContent='✓ Correto! Muito bem!';
+      okCount++; $('correct-count').textContent=okCount;
+    } else {
+      addLine('t-err',`bash: ${typed}: command not found`);
+      addHTML('',`<span style="color:var(--text-dim)">→ Correto: </span><span style="color:var(--amber)">${esc(q.ans[0])}</span>`);
+      $('feedback').className='feedback wrong show';
+      $('feedback').textContent=`✗ Incorreto. Era: ${q.ans[0]}`;
+      errCount++; $('wrong-count').textContent=errCount;
+    }
+    tb.scrollTop=tb.scrollHeight;
+    $('next-btn').disabled=false;
+  }, 260);
+}
+
+function skip(){
+  if(answered) return;
+  const q=Q[idx];
+  answered=true;
+  $('cmd-input').disabled=true;
+  addHTML('',`<span style="color:var(--text-dim)"># Pulado → </span><span style="color:var(--amber)">${esc(q.ans[0])}</span>`);
+  $('terminal-body').scrollTop=$('terminal-body').scrollHeight;
+  $('feedback').className='feedback wrong show';
+  $('feedback').textContent=`⤳ Pulado. Era: ${q.ans[0]}`;
+  errCount++; $('wrong-count').textContent=errCount;
+  $('next-btn').disabled=false;
+}
+
+function nextQ(){
+  idx++;
+  if(idx>=Q.length) endGame(); else loadQ(idx);
+}
+
+function endGame(){
+  $('quiz-screen').style.display='none';
+  $('end-screen').className='end-screen show';
+  const pct=Math.round((okCount/Q.length)*100);
+  $('final-score').textContent=pct+'%';
+  $('end-correct').textContent=okCount;
+  $('end-wrong').textContent=errCount;
+  $('end-pct').textContent=pct+'%';
+  const grades=['💻 INICIANTE — Não desista!','📚 INICIANTE — Estude mais!','🎯 INTERMEDIÁRIO — Continue!','⭐ AVANÇADO — Muito bom!','🏆 MESTRE DO LINUX'];
+  $('final-grade').textContent = pct>=90?grades[4]:pct>=75?grades[3]:pct>=60?grades[2]:pct>=40?grades[1]:grades[0];
+  const c=$('matrix-canvas');
+  c.classList.add('show');
+  startMatrix(c);
+}
+
+function restart(){
+  idx=okCount=errCount=0;
+  $('correct-count').textContent=$('wrong-count').textContent=0;
+  $('end-screen').className='end-screen';
+  $('quiz-screen').style.display='flex';
+  $('matrix-canvas').classList.remove('show');
+  loadQ(0);
+}
+
+$('run-btn').addEventListener('click', check);
+$('next-btn').addEventListener('click', nextQ);
+$('skip-btn').addEventListener('click', skip);
+$('restart-btn').addEventListener('click', restart);
+
+$('cmd-input').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(!answered) check();
+    else if(!$('next-btn').disabled) nextQ();
+  }
+});
+
+// Detect virtual keyboard (resize) on mobile
+let lastH = window.innerHeight;
+window.addEventListener('resize', ()=>{
+  const h = window.innerHeight;
+  if(h < lastH - 100) document.body.classList.add('kb-open');
+  else document.body.classList.remove('kb-open');
+  lastH = h;
+});
+
+function startMatrix(canvas){
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const chars='アイウエオ0123456789ABCDEFabcdef$#@!';
+  const sz=14, cols=Math.floor(canvas.width/sz);
+  const drops=Array(cols).fill(1);
+  setInterval(()=>{
+    ctx.fillStyle='rgba(10,14,10,0.05)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#00ff88'; ctx.font=sz+'px JetBrains Mono';
+    drops.forEach((y,i)=>{
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*sz,y*sz);
+      if(y*sz>canvas.height&&Math.random()>0.975) drops[i]=0;
+      drops[i]++;
+    });
+  },55);
+}
+
+loadQ(0);
+</script>
+</body>
+</html>
